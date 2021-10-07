@@ -79,6 +79,7 @@ var (
 						msgformat,
 						margs...,
 					),
+					Flags: 1 << 6,
 				},
 			})
 		},
