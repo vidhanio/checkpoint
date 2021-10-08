@@ -136,7 +136,7 @@ var (
 					}
 
 				} else {
-					msg = "Sorry, your infromation is invalid."
+					msg = "Sorry, your information is invalid."
 				}
 			}
 
@@ -192,9 +192,9 @@ func init() {
 }
 
 func NewStudent(firstName string, lastName string, grade int, teacherName string, studentNumber int) *Student {
-	firstInitial := string(firstName[0])
-	lastInitial := string(lastName[0])
-	teacherInitial := string(teacherName[0])
+	firstInitial := string(strings.Title(firstName)[0])
+	lastInitial := string(strings.Title(lastName)[0])
+	teacherInitial := string(strings.Title(teacherName)[0])
 
 	student := new(Student)
 	student.Initials = [2]string{firstInitial, lastInitial}
