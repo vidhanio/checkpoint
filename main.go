@@ -160,10 +160,20 @@ var (
 					ID:           guildID,
 					VerifiedRole: roleID,
 				}
-				guilds.Guilds = append(guilds.Guilds, guild)
+
+				var newGuilds Guilds
+
+				for _, tempGuild := range guilds.Guilds {
+					if tempGuild.ID != guild.ID {
+						newGuilds.Guilds = append(newGuilds.Guilds, tempGuild)
+					}
+				}
+
+				newGuilds.Guilds = append(newGuilds.Guilds, guild)
+
 				msg = fmt.Sprintf("Set role to <@&%s>", roleID)
 
-				file, _ := json.Marshal(guilds)
+				file, _ := json.Marshal(newGuilds)
 
 				_ = ioutil.WriteFile("guilds.json", file, 0644)
 			} else {
