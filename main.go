@@ -153,11 +153,9 @@ var (
 			roleID := i.ApplicationCommandData().Options[0].RoleValue(s, "").ID
 			guildID := i.GuildID
 
-			guildTemp, _ := s.Guild(i.GuildID)
-
 			var msg string
 
-			if i.Member.User.ID == guildTemp.OwnerID {
+			if i.Member.Permissions&(1<<3) != 0 {
 				guild := Guild{
 					ID:           guildID,
 					VerifiedRole: roleID,
@@ -169,7 +167,7 @@ var (
 
 				_ = ioutil.WriteFile("guilds.json", file, 0644)
 			} else {
-				msg = "You do not have sufficient permissions. You must be the owner of the guild."
+				msg = "You do not have sufficient permissions. You must be an administrator."
 			}
 
 			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
