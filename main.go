@@ -194,7 +194,8 @@ func init() {
 func NewStudent(firstName string, lastName string, grade int, teacherName string, studentNumber int) *Student {
 	firstInitial := string(strings.Title(firstName)[0])
 	lastInitial := string(strings.Title(lastName)[0])
-	teacherInitial := string(strings.Title(teacherName)[0])
+	teacherFields := strings.Fields(strings.Title(teacherName))
+	teacherInitial := string(teacherFields[len(teacherFields)-1][0])
 
 	student := new(Student)
 	student.Initials = [2]string{firstInitial, lastInitial}
