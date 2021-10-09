@@ -133,6 +133,9 @@ var (
 					msg = "You are verified! Welcome!"
 					if len(currentGuild.ID) > 0 {
 						_ = s.GuildMemberRoleAdd(currentGuild.ID, i.Member.User.ID, currentGuild.VerifiedRole)
+						_ = s.GuildMemberNickname(currentGuild.ID, i.Member.User.ID, firstName+string(lastName[0]))
+					} else {
+						msg = "Please ask an admin to use `/initalize`."
 					}
 
 				} else {
