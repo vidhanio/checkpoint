@@ -2,7 +2,7 @@ module github.com/vidhanio/woodlands-checkpoint
 
 go 1.17
 
-require github.com/bwmarrin/discordgo v0.23.3-0.20210821175000-0fad116c6c2a
+require github.com/bwmarrin/discordgo v0.23.3-0.20211010150959-f0b7e81468f7
 
 require (
 	github.com/gorilla/websocket v1.4.2 // indirect
