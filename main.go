@@ -248,6 +248,8 @@ var (
 
 				msg = fmt.Sprintf("Set role to <@&%s>", roleID)
 
+				guilds = &newGuilds
+
 				file, _ := json.Marshal(newGuilds)
 
 				_ = ioutil.WriteFile("guilds.json", file, 0644)
