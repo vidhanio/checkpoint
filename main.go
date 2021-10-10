@@ -169,14 +169,32 @@ var (
 					}
 					if len(currentGuild.ID) != 0 {
 						msg = "You are verified! Welcome!"
+
 						for _, gradeRole := range currentGuild.GradeRoles {
-							s.GuildMemberRoleRemove(currentGuild.ID, i.Member.User.ID, gradeRole)
+							err = s.GuildMemberRoleRemove(currentGuild.ID, i.Member.User.ID, gradeRole)
+							if err != nil {
+								msg = "ERROR: " + err.Error()
+							}
+
 						}
-						_ = s.GuildMemberRoleAdd(currentGuild.ID, i.Member.User.ID, currentGuild.VerifiedRole)
 
-						_ = s.GuildMemberRoleAdd(currentGuild.ID, i.Member.User.ID, currentGuild.GradeRoles[student.Grade-7])
+						err = s.GuildMemberRoleAdd(currentGuild.ID, i.Member.User.ID, currentGuild.VerifiedRole)
 
-						_ = s.GuildMemberNickname(currentGuild.ID, i.Member.User.ID, firstName+" "+string(lastName[0])+".")
+						if err != nil {
+							msg = "ERROR: " + err.Error()
+						}
+
+						err = s.GuildMemberRoleAdd(currentGuild.ID, i.Member.User.ID, currentGuild.GradeRoles[student.Grade-7])
+
+						if err != nil {
+							msg = "ERROR: " + err.Error()
+						}
+
+						err = s.GuildMemberNickname(currentGuild.ID, i.Member.User.ID, firstName+" "+string(lastName[0])+".")
+
+						if err != nil {
+							msg = "ERROR: " + err.Error()
+						}
 
 					} else {
 						msg = "Please ask an admin to use `/initalize`."
