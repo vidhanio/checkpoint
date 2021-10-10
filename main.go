@@ -30,8 +30,9 @@ type Guilds struct {
 }
 
 type Guild struct {
-	ID           string `json:"id"`
-	VerifiedRole string `json:"verified_role"`
+	ID           string    `json:"id"`
+	VerifiedRole string    `json:"verified_role"`
+	GradeRoles   [6]string `json:"grade_roles"`
 }
 
 // Bot parameters
@@ -61,13 +62,13 @@ var (
 
 				{
 					Type:        discordgo.ApplicationCommandOptionString,
-					Name:        "first-name",
+					Name:        "first_name",
 					Description: "Your first name.",
 					Required:    true,
 				},
 				{
 					Type:        discordgo.ApplicationCommandOptionString,
-					Name:        "last-name",
+					Name:        "last_name",
 					Description: "Your last name.",
 					Required:    true,
 				},
@@ -79,13 +80,13 @@ var (
 				},
 				{
 					Type:        discordgo.ApplicationCommandOptionString,
-					Name:        "teacher-name",
+					Name:        "teacher_name",
 					Description: "The last name of your homeroom teacher (Week 1, Period 1)",
 					Required:    true,
 				},
 				{
 					Type:        discordgo.ApplicationCommandOptionInteger,
-					Name:        "student-number",
+					Name:        "student_number",
 					Description: "Your student number (6 digits).",
 					Required:    true,
 				},
@@ -98,8 +99,44 @@ var (
 
 				{
 					Type:        discordgo.ApplicationCommandOptionRole,
-					Name:        "verified-role",
+					Name:        "verified_role",
 					Description: "The role to give to verified users.",
+					Required:    true,
+				},
+				{
+					Type:        discordgo.ApplicationCommandOptionRole,
+					Name:        "grade_7_role",
+					Description: "The role to give to 7th graders.",
+					Required:    true,
+				},
+				{
+					Type:        discordgo.ApplicationCommandOptionRole,
+					Name:        "grade_8_role",
+					Description: "The role to give to 8th graders.",
+					Required:    true,
+				},
+				{
+					Type:        discordgo.ApplicationCommandOptionRole,
+					Name:        "grade_9_role",
+					Description: "The role to give to 9th graders.",
+					Required:    true,
+				},
+				{
+					Type:        discordgo.ApplicationCommandOptionRole,
+					Name:        "grade_10_role",
+					Description: "The role to give to 10th graders.",
+					Required:    true,
+				},
+				{
+					Type:        discordgo.ApplicationCommandOptionRole,
+					Name:        "grade_11_role",
+					Description: "The role to give to 11th graders.",
+					Required:    true,
+				},
+				{
+					Type:        discordgo.ApplicationCommandOptionRole,
+					Name:        "grade_12_role",
+					Description: "The role to give to 12th graders.",
 					Required:    true,
 				},
 			},
@@ -130,10 +167,17 @@ var (
 							currentGuild = guild
 						}
 					}
-					msg = "You are verified! Welcome!"
-					if len(currentGuild.ID) > 0 {
+					if len(currentGuild.ID) != 0 {
+						msg = "You are verified! Welcome!"
+						for _, gradeRole := range currentGuild.GradeRoles {
+							s.GuildMemberRoleRemove(currentGuild.ID, i.Member.User.ID, gradeRole)
+						}
 						_ = s.GuildMemberRoleAdd(currentGuild.ID, i.Member.User.ID, currentGuild.VerifiedRole)
+
+						_ = s.GuildMemberRoleAdd(currentGuild.ID, i.Member.User.ID, currentGuild.GradeRoles[student.Grade-7])
+
 						_ = s.GuildMemberNickname(currentGuild.ID, i.Member.User.ID, firstName+" "+string(lastName[0])+".")
+
 					} else {
 						msg = "Please ask an admin to use `/initalize`."
 					}
@@ -154,6 +198,12 @@ var (
 		"initialize": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 
 			roleID := i.ApplicationCommandData().Options[0].RoleValue(s, "").ID
+			grade7Role := i.ApplicationCommandData().Options[1].RoleValue(s, "").ID
+			grade8Role := i.ApplicationCommandData().Options[2].RoleValue(s, "").ID
+			grade9Role := i.ApplicationCommandData().Options[3].RoleValue(s, "").ID
+			grade10Role := i.ApplicationCommandData().Options[4].RoleValue(s, "").ID
+			grade11Role := i.ApplicationCommandData().Options[5].RoleValue(s, "").ID
+			grade12Role := i.ApplicationCommandData().Options[6].RoleValue(s, "").ID
 			guildID := i.GuildID
 
 			var msg string
@@ -162,6 +212,7 @@ var (
 				guild := Guild{
 					ID:           guildID,
 					VerifiedRole: roleID,
+					GradeRoles:   [6]string{grade7Role, grade8Role, grade9Role, grade10Role, grade11Role, grade12Role},
 				}
 
 				var newGuilds Guilds
