@@ -41,6 +41,7 @@ var (
 	BotToken = flag.String("token", "", "Bot access token")
 )
 
+// Initialize session/bot, parse flags for bot
 var s *discordgo.Session
 
 func init() { flag.Parse() }
@@ -52,6 +53,8 @@ func init() {
 		log.Fatalf("Invalid bot parameters: %v", err)
 	}
 }
+
+// Define the command formats
 
 var (
 	commands = []*discordgo.ApplicationCommand{
