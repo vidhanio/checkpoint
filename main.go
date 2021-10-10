@@ -328,11 +328,11 @@ var students *Students
 var guilds *Guilds
 
 func main() {
-	s.AddHandler(func(s *discordgo.Session, c *discordgo.Connect) {
-		_ = s.UpdateListeningStatus("/verify")
-	})
 	s.AddHandler(func(s *discordgo.Session, r *discordgo.Ready) {
 		log.Println("Bot is up!")
+	})
+	s.AddHandler(func(s *discordgo.Session, c *discordgo.Connect) {
+		_ = s.UpdateListeningStatus("/verify")
 	})
 	err := s.Open()
 	if err != nil {
