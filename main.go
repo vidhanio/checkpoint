@@ -3,13 +3,14 @@ package main
 import (
 	"encoding/json"
 	"errors"
-	"flag"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
 	"os/signal"
 	"strings"
+
+	"github.com/joho/godotenv"
 
 	"github.com/bwmarrin/discordgo"
 )
@@ -35,20 +36,14 @@ type Guild struct {
 	GradeRoles   [6]string `json:"grade_roles"`
 }
 
-// Bot parameters
-var (
-	GuildID  = flag.String("guild", "", "Test guild ID. If not passed - bot registers commands globally")
-	BotToken = flag.String("token", "", "Bot access token")
-)
-
-// Initialize session/bot, parse flags for bot
+// Initialize session/bot
 var s *discordgo.Session
 
-func init() { flag.Parse() }
-
 func init() {
+	BotToken := goDotEnvVariable("BOT_TOKEN")
+
 	var err error
-	s, err = discordgo.New("Bot " + *BotToken)
+	s, err = discordgo.New("Bot " + BotToken)
 	if err != nil {
 		log.Fatalf("Invalid bot parameters: %v", err)
 	}
@@ -181,23 +176,9 @@ var (
 
 						}
 
-						err = s.GuildMemberRoleAdd(currentGuild.ID, i.Member.User.ID, currentGuild.VerifiedRole)
-
-						if err != nil {
-							msg = "ERROR: " + err.Error()
-						}
-
-						err = s.GuildMemberRoleAdd(currentGuild.ID, i.Member.User.ID, currentGuild.GradeRoles[student.Grade-7])
-
-						if err != nil {
-							msg = "ERROR: " + err.Error()
-						}
-
-						err = s.GuildMemberNickname(currentGuild.ID, i.Member.User.ID, firstName+" "+string(lastName[0])+".")
-
-						if err != nil {
-							msg = "ERROR: " + err.Error()
-						}
+						_ = s.GuildMemberRoleAdd(currentGuild.ID, i.Member.User.ID, currentGuild.VerifiedRole)
+						_ = s.GuildMemberRoleAdd(currentGuild.ID, i.Member.User.ID, currentGuild.GradeRoles[student.Grade-7])
+						_ = s.GuildMemberNickname(currentGuild.ID, i.Member.User.ID, firstName+" "+string(lastName[0])+".")
 
 					} else {
 						msg = "Please ask an admin to use `/initalize`."
@@ -274,6 +255,16 @@ func init() {
 			h(s, i)
 		}
 	})
+}
+
+func goDotEnvVariable(key string) string {
+
+	err := godotenv.Load(".env")
+
+	if err != nil {
+		log.Fatalf("Error loading .env file")
+	}
+	return os.Getenv(key)
 }
 
 func NewStudent(firstName string, lastName string, grade int, teacherName string, studentNumber int) *Student {
@@ -360,7 +351,7 @@ func main() {
 	}
 
 	for _, v := range commands {
-		_, err := s.ApplicationCommandCreate(s.State.User.ID, *GuildID, v)
+		_, err := s.ApplicationCommandCreate(s.State.User.ID, "", v)
 		if err != nil {
 			log.Panicf("Cannot create '%v' command: %v", v.Name, err)
 		}
