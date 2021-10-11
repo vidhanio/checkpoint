@@ -17,6 +17,15 @@
 - Make sure that the `@Woodlands Checkpoint` role is higher than your verified role
 - The bot will not nickname you if your highest role is higher than the `@Woodlands Checkpoint` role
 
+## Self-Hosting
+
+1. Make copies of `students.example.json`, `guilds.example.json`, and `example.env`
+2. Remove the `.example` from each of the filenames
+3. Fill `students.json` with student information
+4. Put your Discord bot token in the `.env`
+5. Run `go build main`
+6. Run `./main` (or `./main.exe` for Windows users)
+
 ## How it Works
 
 DM me on Discord ([`vidhan#0001`](<https://discord.com/users/277507281652940800>)) to inquire about how the bot works.
