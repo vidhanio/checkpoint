@@ -28,4 +28,4 @@
 
 ## How it Works
 
-DM me on Discord ([`vidhan#0001`](<https://discord.com/users/277507281652940800>)) to inquire about how the bot works.
+DM me on Discord ([`vidhan#0001`](https://discord.com/users/277507281652940800)) to inquire about how the bot works
