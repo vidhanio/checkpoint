@@ -159,26 +159,41 @@ var (
 				msg = "Error: " + err.Error()
 			} else {
 				if studentVerification {
+
 					var currentGuild Guild
 					for _, guild := range guilds.Guilds {
 						if guild.ID == i.GuildID {
 							currentGuild = guild
+							break
 						}
 					}
+
 					if len(currentGuild.ID) != 0 {
 						msg = "You are verified! Welcome!"
 
 						for _, gradeRole := range currentGuild.GradeRoles {
+
 							err = s.GuildMemberRoleRemove(currentGuild.ID, i.Member.User.ID, gradeRole)
 							if err != nil {
-								msg = "ERROR: " + err.Error()
+								msg = "Error while removing role: " + err.Error()
 							}
 
 						}
 
-						_ = s.GuildMemberRoleAdd(currentGuild.ID, i.Member.User.ID, currentGuild.VerifiedRole)
-						_ = s.GuildMemberRoleAdd(currentGuild.ID, i.Member.User.ID, currentGuild.GradeRoles[student.Grade-7])
-						_ = s.GuildMemberNickname(currentGuild.ID, i.Member.User.ID, firstName+" "+string(lastName[0])+".")
+						err = s.GuildMemberRoleAdd(currentGuild.ID, i.Member.User.ID, currentGuild.VerifiedRole)
+						if err != nil {
+							msg = "Error while adding verified role: " + err.Error()
+						}
+
+						err = s.GuildMemberRoleAdd(currentGuild.ID, i.Member.User.ID, currentGuild.GradeRoles[student.Grade-7])
+						if err != nil {
+							msg = "Error while adding grade role: " + err.Error()
+						}
+
+						err = s.GuildMemberNickname(currentGuild.ID, i.Member.User.ID, firstName+" "+string(lastName[0])+".")
+						if err != nil {
+							msg = "Error while changing nickname: " + err.Error()
+						}
 
 					} else {
 						msg = "Please ask an admin to use `/initalize`."
@@ -233,7 +248,12 @@ var (
 
 				file, _ := json.Marshal(newGuilds)
 
-				_ = ioutil.WriteFile("guilds.json", file, 0644)
+				err := ioutil.WriteFile("guilds.json", file, 0644)
+
+				if err != nil {
+					msg = "Error while saving guilds.json: " + err.Error()
+				}
+
 			} else {
 				msg = "You do not have sufficient permissions. You must be an administrator."
 			}
