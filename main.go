@@ -34,6 +34,7 @@ type Guild struct {
 	ID           string    `json:"id"`
 	VerifiedRole string    `json:"verified_role"`
 	GradeRoles   [6]string `json:"grade_roles"`
+	PronounRoles []string  `json:"pronoun_roles"`
 }
 
 // Initialize session/bot
@@ -230,6 +231,7 @@ var (
 					ID:           guildID,
 					VerifiedRole: roleID,
 					GradeRoles:   [6]string{grade7Role, grade8Role, grade9Role, grade10Role, grade11Role, grade12Role},
+					PronounRoles: []string{},
 				}
 
 				var newGuilds Guilds
