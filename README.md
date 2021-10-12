@@ -21,11 +21,9 @@
 
 1. Make copies of `students.example.json`, `guilds.example.json`, and `example.env`
 2. Remove the `.example` from each of the filenames
-3. Fill `students.json` with student information
+3. Fill `students.json` with student information*
 4. Put your Discord bot token in the `.env`
 5. Run `go build main`
 6. Run `./main` (or `./main.exe` for Windows users)
 
-## How it Works
-
-DM me on Discord ([`vidhan#0001`](https://discord.com/users/277507281652940800)) to inquire about how the bot works
+\*DM me on Discord ([`vidhan#0001`](https://discord.com/users/277507281652940800)) if you are interested in doing this step yourself.
