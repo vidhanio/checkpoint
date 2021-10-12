@@ -31,17 +31,23 @@ type Guilds struct {
 }
 
 type Guild struct {
-	ID           string    `json:"id"`
-	VerifiedRole string    `json:"verified_role"`
-	GradeRoles   [6]string `json:"grade_roles"`
-	PronounRoles []string  `json:"pronoun_roles"`
+	ID           string        `json:"id"`
+	VerifiedRole string        `json:"verified_role"`
+	GradeRoles   [6]string     `json:"grade_roles"`
+	PronounRoles []PronounRole `json:"pronoun_roles"`
+}
+
+type PronounRole struct {
+	Label string `json:"label"`
+	Value string `json:"value"`
+	ID    string `json:"id"`
 }
 
 // Initialize session/bot
 var s *discordgo.Session
 
 func init() {
-	BotToken := goDotEnvVariable("BOT_TOKEN")
+	BotToken := loadEnvVariable("BOT_TOKEN")
 
 	var err error
 	s, err = discordgo.New("Bot " + BotToken)
@@ -140,8 +146,43 @@ var (
 				},
 			},
 		},
+		{
+			Name:        "select_pronouns",
+			Description: "Select your pronouns.",
+		},
 	}
-	commandHandlers = map[string]func(s *discordgo.Session, i *discordgo.InteractionCreate){
+	componentsHandlers = map[string]func(s *discordgo.Session, i *discordgo.InteractionCreate){
+		"sp": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+			selectedPronouns := i.MessageComponentData().Values
+
+			guild := getGuildByID(i.GuildID)
+
+			message := "Please ask an administrator to use `/initialize_pronouns`"
+
+			if len(guild.ID) != 0 {
+				message = "Success! Set your pronouns."
+				for _, pronoun := range guild.PronounRoles {
+					if includes(pronoun.Value, &selectedPronouns) {
+						_ = s.GuildMemberRoleAdd(i.GuildID, i.Member.User.ID, pronoun.ID)
+					} else {
+						_ = s.GuildMemberRoleRemove(i.GuildID, i.Member.User.ID, pronoun.ID)
+					}
+				}
+			}
+
+			err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+				Type: discordgo.InteractionResponseChannelMessageWithSource,
+				Data: &discordgo.InteractionResponseData{
+					Content: message,
+					Flags:   1 << 6,
+				},
+			})
+			if err != nil {
+				panic(err)
+			}
+		},
+	}
+	commandsHandlers = map[string]func(s *discordgo.Session, i *discordgo.InteractionCreate){
 		"verify": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 
 			firstName := strings.Title(i.ApplicationCommandData().Options[0].StringValue())
@@ -174,27 +215,15 @@ var (
 
 						for _, gradeRole := range currentGuild.GradeRoles {
 
-							err = s.GuildMemberRoleRemove(currentGuild.ID, i.Member.User.ID, gradeRole)
-							if err != nil {
-								msg = "Error while removing role: " + err.Error()
-							}
+							_ = s.GuildMemberRoleRemove(currentGuild.ID, i.Member.User.ID, gradeRole)
 
 						}
 
-						err = s.GuildMemberRoleAdd(currentGuild.ID, i.Member.User.ID, currentGuild.VerifiedRole)
-						if err != nil {
-							msg = "Error while adding verified role: " + err.Error()
-						}
+						_ = s.GuildMemberRoleAdd(currentGuild.ID, i.Member.User.ID, currentGuild.VerifiedRole)
 
-						err = s.GuildMemberRoleAdd(currentGuild.ID, i.Member.User.ID, currentGuild.GradeRoles[student.Grade-7])
-						if err != nil {
-							msg = "Error while adding grade role: " + err.Error()
-						}
+						_ = s.GuildMemberRoleAdd(currentGuild.ID, i.Member.User.ID, currentGuild.GradeRoles[student.Grade-7])
 
-						err = s.GuildMemberNickname(currentGuild.ID, i.Member.User.ID, firstName+" "+string(lastName[0])+".")
-						if err != nil {
-							msg = "Error while changing nickname: " + err.Error()
-						}
+						_ = s.GuildMemberNickname(currentGuild.ID, i.Member.User.ID, firstName+" "+string(lastName[0])+".")
 
 					} else {
 						msg = "Please ask an admin to use `/initalize`."
@@ -226,12 +255,12 @@ var (
 
 			var msg string
 
-			if i.Member.Permissions&(1<<3) != 0 {
+			if isAdmin(i.Member) {
 				guild := Guild{
 					ID:           guildID,
 					VerifiedRole: roleID,
 					GradeRoles:   [6]string{grade7Role, grade8Role, grade9Role, grade10Role, grade11Role, grade12Role},
-					PronounRoles: []string{},
+					PronounRoles: []PronounRole{},
 				}
 
 				var newGuilds Guilds
@@ -268,25 +297,73 @@ var (
 				},
 			})
 		},
+		"select_pronouns": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+
+			guild := getGuildByID(i.GuildID)
+
+			var pronounOptions []discordgo.SelectMenuOption
+
+			memberRoles := i.Member.Roles
+
+			for _, pronoun := range guild.PronounRoles {
+				pronounOption := discordgo.SelectMenuOption{
+					Label: pronoun.Label,
+					Value: pronoun.Value,
+				}
+				if includes(pronoun.ID, &memberRoles) {
+					pronounOption.Default = true
+				}
+				pronounOptions = append(pronounOptions, pronounOption)
+			}
+
+			response := &discordgo.InteractionResponse{
+				Type: discordgo.InteractionResponseChannelMessageWithSource,
+				Data: &discordgo.InteractionResponseData{
+					Content: "Select your pronouns.",
+					Flags:   1 << 6,
+					Components: []discordgo.MessageComponent{
+						discordgo.ActionsRow{
+							Components: []discordgo.MessageComponent{
+								discordgo.SelectMenu{
+									CustomID:    "sp",
+									Placeholder: "Select your pronouns",
+									MinValues:   1,
+									MaxValues:   3,
+									Options:     pronounOptions,
+								},
+							},
+						},
+					},
+				},
+			}
+			err := s.InteractionRespond(i.Interaction, response)
+			if err != nil {
+				panic(err)
+			}
+		},
 	}
 )
 
-func init() {
-	s.AddHandler(func(s *discordgo.Session, i *discordgo.InteractionCreate) {
-		if h, ok := commandHandlers[i.ApplicationCommandData().Name]; ok {
-			h(s, i)
-		}
-	})
-}
-
-func goDotEnvVariable(key string) string {
-
+func loadEnvVariable(key string) string {
 	err := godotenv.Load(".env")
 
 	if err != nil {
 		log.Fatalf("Error loading .env file")
 	}
 	return os.Getenv(key)
+}
+
+func getGuildByID(id string) Guild {
+	for _, guild := range guilds.Guilds {
+		if guild.ID == id {
+			return guild
+		}
+	}
+	return Guild{}
+}
+
+func isAdmin(m *discordgo.Member) bool {
+	return m.Permissions&(1<<3) != 0
 }
 
 func NewStudent(firstName string, lastName string, grade int, teacherName string, studentNumber int) *Student {
@@ -337,17 +414,49 @@ func verifyStudent(student *Student, students *Students) (bool, error) {
 	return false, nil
 }
 
+func includes(s string, a *[]string) bool {
+	for _, v := range *a {
+		if v == s {
+			return true
+		}
+	}
+	return false
+}
+
 var students *Students
 var guilds *Guilds
+
+func init() {
+	s.AddHandler(func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+		switch i.Type {
+		case discordgo.InteractionApplicationCommand:
+
+			if h, ok := commandsHandlers[i.ApplicationCommandData().Name]; ok {
+				h(s, i)
+			}
+		case discordgo.InteractionMessageComponent:
+
+			if h, ok := componentsHandlers[i.MessageComponentData().CustomID]; ok {
+				h(s, i)
+			}
+		}
+	})
+}
 
 func main() {
 	s.AddHandler(func(s *discordgo.Session, r *discordgo.Ready) {
 		log.Println("Bot is up!")
 	})
 	s.AddHandler(func(s *discordgo.Session, c *discordgo.Connect) {
-		_ = s.UpdateListeningStatus("/verify")
+		err := s.UpdateListeningStatus("/verify")
+
+		if err != nil {
+			panic(err)
+		}
 	})
+
 	err := s.Open()
+
 	if err != nil {
 		log.Fatalf("Cannot open the session: %v", err)
 	}
@@ -373,7 +482,7 @@ func main() {
 	}
 
 	for _, v := range commands {
-		_, err := s.ApplicationCommandCreate(s.State.User.ID, "", v)
+		_, err := s.ApplicationCommandCreate(s.State.User.ID, "583464194331115566", v)
 		if err != nil {
 			log.Panicf("Cannot create '%v' command: %v", v.Name, err)
 		}
