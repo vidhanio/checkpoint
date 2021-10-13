@@ -583,19 +583,21 @@ var (
 					}
 				}
 
-				response = &discordgo.InteractionResponse{
-					Type: discordgo.InteractionResponseChannelMessageWithSource,
-					Data: &discordgo.InteractionResponseData{
-						Content: messageContent,
-						Flags:   1 << 6,
-					},
-				}
+			} else {
+				messageContent = "You must have administrator permissions to use `/config`."
+			}
+			response = &discordgo.InteractionResponse{
+				Type: discordgo.InteractionResponseChannelMessageWithSource,
+				Data: &discordgo.InteractionResponseData{
+					Content: messageContent,
+					Flags:   1 << 6,
+				},
+			}
 
-				err := s.InteractionRespond(i.Interaction, response)
+			err := s.InteractionRespond(i.Interaction, response)
 
-				if err != nil {
-					fmt.Println(err.Error())
-				}
+			if err != nil {
+				fmt.Println(err.Error())
 			}
 		},
 	}
