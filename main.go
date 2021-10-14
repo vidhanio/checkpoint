@@ -7,11 +7,20 @@ import (
 	"log"
 	"os"
 	"os/signal"
+	"runtime"
 	"strconv"
 	"strings"
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/joho/godotenv"
+)
+
+// Build Variables
+var (
+	BuildVersion = "dev"
+	BuildTime    = "unknown"
+	GOOS         = runtime.GOOS
+	GOARCH       = runtime.GOARCH
 )
 
 type Students struct {
@@ -642,7 +651,7 @@ func main() {
 
 	s.AddHandler(
 		func(s *discordgo.Session, c *discordgo.Connect) {
-			err := s.UpdateListeningStatus("/verify")
+			err := s.UpdateListeningStatus(fmt.Sprintf("/verify | Built on %s (%s) with %s/%s", BuildVersion, BuildTime, GOOS, GOARCH))
 			if err != nil {
 				log.Println(err)
 			}
