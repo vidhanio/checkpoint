@@ -742,7 +742,6 @@ var (
 			err := s.InteractionRespond(i.Interaction, &response)
 
 			if err != nil {
-
 				log.Println(err)
 			}
 		},
