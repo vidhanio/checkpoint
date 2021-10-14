@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -11,9 +10,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/joho/godotenv"
-
 	"github.com/bwmarrin/discordgo"
+	"github.com/joho/godotenv"
 )
 
 type Students struct {
@@ -43,7 +41,6 @@ var s *discordgo.Session
 
 func init() {
 	BotToken := loadEnvVariable("BOT_TOKEN")
-
 	var err error
 	s, err = discordgo.New("Bot " + BotToken)
 	if err != nil {
@@ -53,7 +50,6 @@ func init() {
 
 func loadEnvVariable(key string) string {
 	err := godotenv.Load(".env")
-
 	if err != nil {
 		log.Fatalf("Error loading .env file")
 	}
@@ -62,17 +58,13 @@ func loadEnvVariable(key string) string {
 
 func writeToGuilds(guilds *Guilds) error {
 	file, err := json.Marshal(guilds)
-
 	if err != nil {
 		return err
 	}
-
 	err = ioutil.WriteFile("guilds.json", file, 0644)
-
 	if err != nil {
 		return err
 	}
-
 	return nil
 }
 
@@ -105,10 +97,11 @@ func NewStudent(firstName string, lastName string, grade int, teacherName string
 	teacherInitial := string(teacherFields[len(teacherFields)-1][0])
 
 	student := new(Student)
+
 	student.Initials = [2]string{firstInitial, lastInitial}
 	student.Grade = grade
-	student.StudentNumber = studentNumber
 	student.TeacherInitial = teacherInitial
+	student.StudentNumber = studentNumber
 
 	return student
 }
@@ -120,31 +113,33 @@ func compareStudents(studentOne *Student, studentTwo *Student) bool {
 		studentOne.TeacherInitial == studentTwo.TeacherInitial {
 		return true
 	}
+
 	return false
 }
-
-func verifyStudent(student *Student, students *Students) (bool, error) {
-
+func verifyStudent(student *Student, students *Students) bool {
 	firstInitialPosition := []rune(student.Initials[0])[0] - 65
-	if firstInitialPosition < 0 || firstInitialPosition > 26 {
-		return false, errors.New("first initial not a letter")
-	}
-
 	lastInitialPosition := []rune(student.Initials[1])[0] - 65
+
+	if firstInitialPosition < 0 || firstInitialPosition > 26 {
+		return false
+	}
 	if lastInitialPosition < 0 || lastInitialPosition > 26 {
-		return false, errors.New("last initial not a letter")
+		return false
 	}
 
 	initialsArr := students.Students[firstInitialPosition][lastInitialPosition]
-
 	for i := 0; i < len(initialsArr); i++ {
 		if compareStudents(student, &initialsArr[i]) {
-			return true, nil
+			return true
 		}
 	}
 
-	return false, nil
+	return false
 }
+
+// Define constants for the embed colors
+const successColor = 0x57F287
+const failureColor = 0xED4245
 
 // Define the command formats
 var (
@@ -189,7 +184,6 @@ var (
 			Name:        "set",
 			Description: "Set information about yourself.",
 			Options: []*discordgo.ApplicationCommandOption{
-
 				{
 					Type:        discordgo.ApplicationCommandOptionSubCommand,
 					Name:        "pronouns",
@@ -201,7 +195,6 @@ var (
 			Name:        "config",
 			Description: "Configure Checkpoint.",
 			Options: []*discordgo.ApplicationCommandOption{
-
 				{
 					Type:        discordgo.ApplicationCommandOptionSubCommandGroup,
 					Name:        "set",
@@ -225,7 +218,7 @@ var (
 				{
 					Type:        discordgo.ApplicationCommandOptionSubCommandGroup,
 					Name:        "add",
-					Description: "Add a configuration option to a group.",
+					Description: "Add a configuration option.",
 					Options: []*discordgo.ApplicationCommandOption{
 						{
 							Type:        discordgo.ApplicationCommandOptionSubCommand,
@@ -287,7 +280,7 @@ var (
 								{
 									Type:        discordgo.ApplicationCommandOptionInteger,
 									Name:        "pronoun_index",
-									Description: "Index of the pronoun you want to remove. [0-<number of pronouns - 1>]",
+									Description: "Index of the pronoun you want to remove. [1-(# of pronouns)]",
 									Required:    true,
 								},
 							},
@@ -300,11 +293,18 @@ var (
 
 	componentsHandlers = map[string]func(s *discordgo.Session, i *discordgo.InteractionCreate){
 		"pronouns_dropdown": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
-
 			guild, _ := getGuildByID(i.GuildID)
 			selectedPronouns := i.MessageComponentData().Values
-			var response *discordgo.InteractionResponse
-			var messageContent string
+			response := discordgo.InteractionResponse{
+				Type: discordgo.InteractionResponseChannelMessageWithSource,
+				Data: &discordgo.InteractionResponseData{
+					Flags: 1 << 6,
+				},
+			}
+			embed := &discordgo.MessageEmbed{
+				Title: "Pronouns not set",
+				Color: failureColor,
+			}
 
 			if len(guild.ID) != 0 {
 				for p, pronoun := range guild.PronounRoles {
@@ -321,36 +321,30 @@ var (
 					pi, err := strconv.Atoi(p)
 
 					if err != nil {
-						fmt.Println(err.Error())
+						log.Println(err)
 					}
-
-					pronounsStringArr = append(pronounsStringArr, fmt.Sprintf("<@&%s>", guild.PronounRoles[pi]))
+					pronounsStringArr = append(pronounsStringArr, fmt.Sprintf("Set pronoun: <@&%s>", guild.PronounRoles[pi]))
 				}
 
-				messageContent = "Set pronouns: " + strings.Join(pronounsStringArr, ", ")
-
-				response = &discordgo.InteractionResponse{
-					Type: discordgo.InteractionResponseChannelMessageWithSource,
-					Data: &discordgo.InteractionResponseData{
-						Content: messageContent,
-						Flags:   1 << 6,
-					},
-				}
+				embed.Title = "Pronouns set"
+				embed.Description = strings.Join(pronounsStringArr, "\n")
+				embed.Color = successColor
 			} else {
-				messageContent = "Please ask an administrator to use `/config add pronoun_role`"
+				embed.Description = "Please ask an administrator to use `/config add pronoun`."
 			}
 
-			err := s.InteractionRespond(i.Interaction, response)
+			response.Data.Embeds = []*discordgo.MessageEmbed{embed}
+
+			err := s.InteractionRespond(i.Interaction, &response)
 
 			if err != nil {
-				fmt.Println(err.Error())
+				log.Println(err)
 			}
 		},
 	}
 
 	commandsHandlers = map[string]func(s *discordgo.Session, i *discordgo.InteractionCreate){
 		"verify": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
-
 			firstName := strings.Title(i.ApplicationCommandData().Options[0].StringValue())
 			lastName := strings.Title(i.ApplicationCommandData().Options[1].StringValue())
 			grade := i.ApplicationCommandData().Options[2].IntValue()
@@ -358,66 +352,72 @@ var (
 			studentNumber := i.ApplicationCommandData().Options[4].IntValue()
 
 			guild, _ := getGuildByID(i.GuildID)
-			var response *discordgo.InteractionResponse
-			var messageContent string
+			response := discordgo.InteractionResponse{
+				Type: discordgo.InteractionResponseChannelMessageWithSource,
+				Data: &discordgo.InteractionResponseData{
+					Flags: 1 << 6,
+				},
+			}
+			embed := &discordgo.MessageEmbed{
+				Title: "Not verified",
+				Color: failureColor,
+			}
 
 			student := NewStudent(firstName, lastName, int(grade), teacherName, int(studentNumber))
 
-			studentVerification, err := verifyStudent(student, students)
+			studentVerification := verifyStudent(student, students)
 
-			if err != nil {
-				messageContent = "Error: " + err.Error()
-			} else {
-				if studentVerification {
-
-					if len(guild.ID) != 0 {
-
-						for _, gradeRole := range guild.GradeRoles {
-							_ = s.GuildMemberRoleRemove(guild.ID, i.Member.User.ID, gradeRole)
-						}
-						_ = s.GuildMemberRoleAdd(guild.ID, i.Member.User.ID, guild.VerifiedRole)
-						_ = s.GuildMemberRoleAdd(guild.ID, i.Member.User.ID, guild.GradeRoles[student.Grade-7])
-						_ = s.GuildMemberNickname(guild.ID, i.Member.User.ID, firstName+" "+string(lastName[0])+".")
-
-						messageContent = "You are verified."
-					} else {
-						messageContent = "Please ask an administrator to use `/config set verified_role`."
+			if studentVerification {
+				if len(guild.ID) != 0 {
+					for _, gradeRole := range guild.GradeRoles {
+						_ = s.GuildMemberRoleRemove(guild.ID, i.Member.User.ID, gradeRole)
 					}
+
+					_ = s.GuildMemberRoleAdd(guild.ID, i.Member.User.ID, guild.VerifiedRole)
+					_ = s.GuildMemberRoleAdd(guild.ID, i.Member.User.ID, guild.GradeRoles[student.Grade-7])
+					_ = s.GuildMemberNickname(guild.ID, i.Member.User.ID, firstName+" "+string(lastName[0])+".")
+
+					embed.Title = "Verified"
+					embed.Color = successColor
 				} else {
-					messageContent = "Sorry, your information is invalid."
+					embed.Description = "Please ask an administrator to use `/config set verified_role`."
 				}
 			}
 
-			response = &discordgo.InteractionResponse{
-				Type: discordgo.InteractionResponseChannelMessageWithSource,
-				Data: &discordgo.InteractionResponseData{
-					Content: messageContent,
-					Flags:   1 << 6,
-				},
-			}
+			response.Data.Embeds = []*discordgo.MessageEmbed{embed}
 
-			err = s.InteractionRespond(i.Interaction, response)
+			err := s.InteractionRespond(i.Interaction, &response)
 
 			if err != nil {
-				fmt.Println(err.Error())
+				log.Println(err)
 			}
 		},
-		"set": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 
+		"set": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			guild, _ := getGuildByID(i.GuildID)
 			memberRoles := i.Member.Roles
-			var response *discordgo.InteractionResponse
-			var messageContent string
-			var components []discordgo.MessageComponent
-
-			var pronounOptions []discordgo.SelectMenuOption
+			response := discordgo.InteractionResponse{
+				Type: discordgo.InteractionResponseChannelMessageWithSource,
+				Data: &discordgo.InteractionResponseData{
+					Flags: 1 << 6,
+				},
+			}
+			embed := &discordgo.MessageEmbed{
+				Title: "Setting information failed",
+				Color: failureColor,
+			}
 
 			switch i.ApplicationCommandData().Options[0].Name {
 			case "pronouns":
+				embed.Title = "Pronouns not set"
+
+				var dropdown discordgo.MessageComponent
+
+				var pronounOptions []discordgo.SelectMenuOption
+
 				if len(guild.PronounRoles) != 0 {
 					for pi, p := range guild.PronounRoles {
 						pronounRole, _ := s.State.Role(guild.ID, p)
-
 						pronounOption := discordgo.SelectMenuOption{
 							Label:   pronounRole.Name,
 							Value:   strconv.Itoa(pi),
@@ -430,55 +430,56 @@ var (
 						pronounOptions = append(pronounOptions, pronounOption)
 					}
 
-					messageContent = "Set your pronouns with the dropdown below."
+					dropdown = discordgo.SelectMenu{
+						CustomID:    "pronouns_dropdown",
+						Placeholder: "Pronouns",
+						MinValues:   1,
+						MaxValues:   len(pronounOptions),
+						Options:     pronounOptions,
+					}
 
-					components = []discordgo.MessageComponent{
+					embed.Title = "Select your pronouns"
+					embed.Color = successColor
+
+					response.Data.Components = []discordgo.MessageComponent{
 						discordgo.ActionsRow{
-							Components: []discordgo.MessageComponent{
-								discordgo.SelectMenu{
-									CustomID:    "pronouns_dropdown",
-									Placeholder: "Pronouns",
-									MinValues:   1,
-									MaxValues:   len(pronounOptions),
-									Options:     pronounOptions,
-								},
-							},
+							Components: []discordgo.MessageComponent{dropdown},
 						},
 					}
 				} else {
-					messageContent = "Please ask an administrator to use `/config add pronoun_role`"
+					embed.Description = "Please ask an administrator to use `/config add pronoun`."
+				}
+				response.Data.Embeds = []*discordgo.MessageEmbed{embed}
+
+				err := s.InteractionRespond(i.Interaction, &response)
+
+				if err != nil {
+					log.Println(err)
 				}
 			}
+		},
 
-			response = &discordgo.InteractionResponse{
+		"config": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+			guild, guildIndex := getGuildByID(i.GuildID)
+			response := discordgo.InteractionResponse{
 				Type: discordgo.InteractionResponseChannelMessageWithSource,
 				Data: &discordgo.InteractionResponseData{
-					Content:    messageContent,
-					Flags:      1 << 6,
-					Components: components,
+					Flags: 1 << 6,
 				},
 			}
-
-			err := s.InteractionRespond(i.Interaction, response)
-
-			if err != nil {
-				fmt.Println(err.Error())
+			embed := &discordgo.MessageEmbed{
+				Title: "Configuration failed",
+				Color: failureColor,
 			}
-		},
-		"config": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
-
-			guild, guildIndex := getGuildByID(i.GuildID)
-			var response *discordgo.InteractionResponse
-			var messageContent string
 
 			if isAdmin(i.Member) {
-
 				switch i.ApplicationCommandData().Options[0].Name {
 				case "set":
+					embed.Title = "Option not set"
+
 					switch i.ApplicationCommandData().Options[0].Options[0].Name {
 					case "verified_role":
 						roleID := i.ApplicationCommandData().Options[0].Options[0].Options[0].RoleValue(s, "").ID
-
 						guild := Guild{
 							ID:           i.GuildID,
 							VerifiedRole: roleID,
@@ -493,18 +494,20 @@ var (
 						}
 
 						newGuilds.Guilds = append(newGuilds.Guilds, guild)
-
 						guilds = &newGuilds
-
-						messageContent = fmt.Sprintf("Set verified role: <@&%s>", roleID)
-
 						err := writeToGuilds(guilds)
 
 						if err != nil {
-							fmt.Println(err.Error())
+							embed.Description = err.Error()
+						} else {
+							embed.Title = "Option set"
+							embed.Description = fmt.Sprintf("Set verified role: <@&%s>", roleID)
+							embed.Color = successColor
 						}
 					}
+
 				case "add":
+					embed.Title = "Option not added"
 					if len(guild.ID) != 0 {
 						switch i.ApplicationCommandData().Options[0].Options[0].Name {
 						case "grade":
@@ -513,34 +516,38 @@ var (
 
 							if 1 <= grade && grade <= 12 {
 								guilds.Guilds[guildIndex].GradeRoles[grade-1] = roleID
-								messageContent = fmt.Sprintf("Added grade %d role: <@&%s>", grade, roleID)
-
 								err := writeToGuilds(guilds)
 
 								if err != nil {
-									fmt.Println(err.Error())
+									embed.Description = err.Error()
+								} else {
+									embed.Title = "Option added"
+									embed.Description = fmt.Sprintf("Added grade %d role: <@&%s>", grade, roleID)
+									embed.Color = successColor
 								}
 							} else {
-								messageContent = "Grade must be in range: [1-12]"
+								embed.Description = "Grade must be in range: [1-12]"
 							}
 
 						case "pronoun":
 							pronounRole := i.ApplicationCommandData().Options[0].Options[0].Options[0].RoleValue(s, "").ID
-
 							guilds.Guilds[guildIndex].PronounRoles = append(guilds.Guilds[guildIndex].PronounRoles, pronounRole)
-
 							err := writeToGuilds(guilds)
 
 							if err != nil {
-								fmt.Println(err.Error())
+								embed.Description = err.Error()
+							} else {
+								embed.Title = "Option added"
+								embed.Description = fmt.Sprintf("Added pronoun role: <@&%s>", pronounRole)
+								embed.Color = successColor
 							}
-
-							messageContent = fmt.Sprintf("Added pronouns role: <@&%s>", pronounRole)
 						}
 					} else {
-						messageContent = "Please run `/config set verified_role` to initialize your server first."
+						embed.Description = "Please run `/config set verified_role` to initialize this server first."
 					}
+
 				case "remove":
+					embed.Title = "Option not removed"
 					if len(guild.ID) != 0 {
 						switch i.ApplicationCommandData().Options[0].Options[0].Name {
 						case "grade":
@@ -548,61 +555,64 @@ var (
 
 							if 1 <= grade && grade <= 12 {
 								guilds.Guilds[guildIndex].GradeRoles[grade-1] = ""
-
 								err := writeToGuilds(guilds)
 
 								if err != nil {
-									fmt.Println(err.Error())
+									log.Println(err)
 								}
 
-								messageContent = fmt.Sprintf("Remove grade %d role.", grade)
+								if err != nil {
+									embed.Description = err.Error()
+								} else {
+									embed.Title = "Option removed"
+									embed.Description = fmt.Sprintf("Removed grade %d role.", grade)
+									embed.Color = successColor
+								}
 							} else {
-								messageContent = "Grade must be in range: [1-12]"
+								embed.Description = "Grade must be in range: [1-12]"
 							}
 
 						case "pronoun":
 							pronounIndex := int(i.ApplicationCommandData().Options[0].Options[0].Options[0].IntValue())
 
-							if 0 <= pronounIndex && pronounIndex <= len(guild.PronounRoles)-1 {
+							if 1 <= pronounIndex && pronounIndex <= len(guild.PronounRoles) {
 								pronounRoles := guilds.Guilds[guildIndex].PronounRoles
-								guilds.Guilds[guildIndex].PronounRoles = append(pronounRoles[:pronounIndex], pronounRoles[pronounIndex+1:]...)
-
+								guilds.Guilds[guildIndex].PronounRoles = append(pronounRoles[:pronounIndex-1], pronounRoles[pronounIndex:]...)
 								err := writeToGuilds(guilds)
 
 								if err != nil {
-									fmt.Println(err.Error())
+									log.Println(err)
 								}
 
-								messageContent = "Removed pronoun role."
+								if err != nil {
+									embed.Description = err.Error()
+								} else {
+									embed.Title = "Option removed"
+									embed.Description = "Removed pronoun role."
+									embed.Color = successColor
+								}
 							} else {
-								messageContent = fmt.Sprintf("Pronoun index must be in range: [0-%d]", len(guild.PronounRoles)-1)
+								embed.Description = fmt.Sprintf("Pronoun index must be in range: [1-%d]", len(guild.PronounRoles))
 							}
 						}
 					} else {
-						messageContent = "Please run `/config set verified_role` to initialize your server first."
+						embed.Description = "Please run `/config set verified_role` to initialize your server first."
 					}
 				}
-
 			} else {
-				messageContent = "You must have administrator permissions to use `/config`."
-			}
-			response = &discordgo.InteractionResponse{
-				Type: discordgo.InteractionResponseChannelMessageWithSource,
-				Data: &discordgo.InteractionResponseData{
-					Content: messageContent,
-					Flags:   1 << 6,
-				},
+				embed.Description = "You must have administrator permissions to use `/config`."
 			}
 
-			err := s.InteractionRespond(i.Interaction, response)
+			response.Data.Embeds = []*discordgo.MessageEmbed{embed}
+
+			err := s.InteractionRespond(i.Interaction, &response)
 
 			if err != nil {
-				fmt.Println(err.Error())
+				log.Println(err)
 			}
 		},
 	}
 )
-
 var students *Students
 var guilds *Guilds
 
@@ -611,13 +621,11 @@ func init() {
 		func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			switch i.Type {
 			case discordgo.InteractionApplicationCommand:
-
 				if h, ok := commandsHandlers[i.ApplicationCommandData().Name]; ok {
 					h(s, i)
 				}
 
 			case discordgo.InteractionMessageComponent:
-
 				if h, ok := componentsHandlers[i.MessageComponentData().CustomID]; ok {
 					h(s, i)
 				}
@@ -625,19 +633,18 @@ func init() {
 		},
 	)
 }
-
 func main() {
 	s.AddHandler(
 		func(s *discordgo.Session, r *discordgo.Ready) {
 			log.Println("Bot is up!")
 		},
 	)
+
 	s.AddHandler(
 		func(s *discordgo.Session, c *discordgo.Connect) {
 			err := s.UpdateListeningStatus("/verify")
-
 			if err != nil {
-				panic(err)
+				log.Println(err)
 			}
 		},
 	)
@@ -649,21 +656,25 @@ func main() {
 	}
 
 	file, err := ioutil.ReadFile("students.json")
+
 	if err != nil {
 		log.Fatalf("Could not open students.json")
 	}
 
 	err = json.Unmarshal([]byte(file), &students)
+
 	if err != nil {
 		log.Fatalf("Could not unmarshal students.json")
 	}
 
 	file, err = ioutil.ReadFile("guilds.json")
+
 	if err != nil {
 		log.Fatalf("Could not open guilds.json")
 	}
 
 	err = json.Unmarshal([]byte(file), &guilds)
+
 	if err != nil {
 		log.Fatalf("Could not unmarshal guilds.json")
 	}
