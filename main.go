@@ -358,6 +358,7 @@ var (
 	}
 
 	commandsHandlers = map[string]func(s *discordgo.Session, i *discordgo.InteractionCreate){
+
 		"verify": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 
 			firstName := strings.Title(i.ApplicationCommandData().Options[0].StringValue())
