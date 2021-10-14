@@ -742,6 +742,7 @@ var (
 			err := s.InteractionRespond(i.Interaction, &response)
 
 			if err != nil {
+
 				log.Println(err)
 			}
 		},
@@ -771,6 +772,7 @@ func main() {
 	s.AddHandler(
 		func(s *discordgo.Session, r *discordgo.Ready) {
 			log.Println("Bot is up!")
+			log.Println(fmt.Sprintf("Built on %s (%s) with %s/%s", BuildVersion, BuildTime, GOOS, GOARCH))
 		},
 	)
 
