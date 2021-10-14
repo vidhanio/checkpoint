@@ -228,7 +228,7 @@ var (
 				{
 					Type:        discordgo.ApplicationCommandOptionSubCommandGroup,
 					Name:        "add",
-					Description: "Add a configuration option to a group.",
+					Description: "Add a configuration option.",
 					Options: []*discordgo.ApplicationCommandOption{
 						{
 							Type:        discordgo.ApplicationCommandOptionSubCommand,
@@ -290,7 +290,7 @@ var (
 								{
 									Type:        discordgo.ApplicationCommandOptionInteger,
 									Name:        "pronoun_index",
-									Description: "Index of the pronoun you want to remove. [0-<number of pronouns - 1>]",
+									Description: "Index of the pronoun you want to remove. [1-(# of pronouns)]",
 									Required:    true,
 								},
 							},
@@ -306,7 +306,12 @@ var (
 
 			guild, _ := getGuildByID(i.GuildID)
 			selectedPronouns := i.MessageComponentData().Values
-			var response *discordgo.InteractionResponse
+			response := discordgo.InteractionResponse{
+				Type: discordgo.InteractionResponseChannelMessageWithSource,
+				Data: &discordgo.InteractionResponseData{
+					Flags: 1 << 6,
+				},
+			}
 			embed := &discordgo.MessageEmbed{
 				Title: "Pronouns not set",
 				Color: failureColor,
@@ -341,15 +346,9 @@ var (
 				embed.Description = "Please ask an administrator to use `/config add pronoun`."
 			}
 
-			response = &discordgo.InteractionResponse{
-				Type: discordgo.InteractionResponseChannelMessageWithSource,
-				Data: &discordgo.InteractionResponseData{
-					Flags:  1 << 6,
-					Embeds: []*discordgo.MessageEmbed{embed},
-				},
-			}
+			response.Data.Embeds = []*discordgo.MessageEmbed{embed}
 
-			err := s.InteractionRespond(i.Interaction, response)
+			err := s.InteractionRespond(i.Interaction, &response)
 
 			if err != nil {
 				panic(err)
@@ -368,7 +367,12 @@ var (
 			studentNumber := i.ApplicationCommandData().Options[4].IntValue()
 
 			guild, _ := getGuildByID(i.GuildID)
-			var response *discordgo.InteractionResponse
+			response := discordgo.InteractionResponse{
+				Type: discordgo.InteractionResponseChannelMessageWithSource,
+				Data: &discordgo.InteractionResponseData{
+					Flags: 1 << 6,
+				},
+			}
 			embed := &discordgo.MessageEmbed{
 				Title: "Not verified",
 				Color: failureColor,
@@ -395,15 +399,9 @@ var (
 					}
 				}
 
-				response = &discordgo.InteractionResponse{
-					Type: discordgo.InteractionResponseChannelMessageWithSource,
-					Data: &discordgo.InteractionResponseData{
-						Flags:  1 << 6,
-						Embeds: []*discordgo.MessageEmbed{embed},
-					},
-				}
+				response.Data.Embeds = []*discordgo.MessageEmbed{embed}
 
-				err = s.InteractionRespond(i.Interaction, response)
+				err = s.InteractionRespond(i.Interaction, &response)
 
 				if err != nil {
 					panic(err)
@@ -415,7 +413,12 @@ var (
 
 			guild, _ := getGuildByID(i.GuildID)
 			memberRoles := i.Member.Roles
-			var response *discordgo.InteractionResponse
+			response := discordgo.InteractionResponse{
+				Type: discordgo.InteractionResponseChannelMessageWithSource,
+				Data: &discordgo.InteractionResponseData{
+					Flags: 1 << 6,
+				},
+			}
 			embed := &discordgo.MessageEmbed{
 				Title: "Setting information failed",
 				Color: failureColor,
@@ -453,42 +456,37 @@ var (
 						Options:     pronounOptions,
 					}
 
-					response = &discordgo.InteractionResponse{
-						Type: discordgo.InteractionResponseChannelMessageWithSource,
-						Data: &discordgo.InteractionResponseData{
-							Content: "Select your pronouns below.",
-							Flags:   1 << 6,
-							Components: []discordgo.MessageComponent{
-								discordgo.ActionsRow{
-									Components: []discordgo.MessageComponent{dropdown},
-								},
-							},
+					embed.Title = "Select your pronouns"
+					embed.Color = successColor
+
+					response.Data.Components = []discordgo.MessageComponent{
+						discordgo.ActionsRow{
+							Components: []discordgo.MessageComponent{dropdown},
 						},
 					}
 				} else {
-					embed.Description = "Please ask an administrator to use `/config add pronoun`"
-
-					response = &discordgo.InteractionResponse{
-						Type: discordgo.InteractionResponseChannelMessageWithSource,
-						Data: &discordgo.InteractionResponseData{
-							Flags:  1 << 6,
-							Embeds: []*discordgo.MessageEmbed{embed},
-						},
-					}
+					embed.Description = "Please ask an administrator to use `/config add pronoun`."
 				}
-			}
 
-			err := s.InteractionRespond(i.Interaction, response)
+				response.Data.Embeds = []*discordgo.MessageEmbed{embed}
 
-			if err != nil {
-				panic(err)
+				err := s.InteractionRespond(i.Interaction, &response)
+
+				if err != nil {
+					panic(err)
+				}
 			}
 		},
 
 		"config": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 
 			guild, guildIndex := getGuildByID(i.GuildID)
-			var response *discordgo.InteractionResponse
+			response := discordgo.InteractionResponse{
+				Type: discordgo.InteractionResponseChannelMessageWithSource,
+				Data: &discordgo.InteractionResponseData{
+					Flags: 1 << 6,
+				},
+			}
 			embed := &discordgo.MessageEmbed{
 				Title: "Configuration failed",
 				Color: failureColor,
@@ -607,9 +605,9 @@ var (
 						case "pronoun":
 							pronounIndex := int(i.ApplicationCommandData().Options[0].Options[0].Options[0].IntValue())
 
-							if 0 <= pronounIndex && pronounIndex <= len(guild.PronounRoles)-1 {
+							if 1 <= pronounIndex && pronounIndex <= len(guild.PronounRoles) {
 								pronounRoles := guilds.Guilds[guildIndex].PronounRoles
-								guilds.Guilds[guildIndex].PronounRoles = append(pronounRoles[:pronounIndex], pronounRoles[pronounIndex+1:]...)
+								guilds.Guilds[guildIndex].PronounRoles = append(pronounRoles[:pronounIndex-1], pronounRoles[pronounIndex:]...)
 
 								err := writeToGuilds(guilds)
 
@@ -626,7 +624,7 @@ var (
 								}
 
 							} else {
-								embed.Description = fmt.Sprintf("Pronoun index must be in range: [0-%d]", len(guild.PronounRoles)-1)
+								embed.Description = fmt.Sprintf("Pronoun index must be in range: [1-%d]", len(guild.PronounRoles))
 							}
 						}
 					} else {
@@ -638,15 +636,9 @@ var (
 				embed.Description = "You must have administrator permissions to use `/config`."
 			}
 
-			response = &discordgo.InteractionResponse{
-				Type: discordgo.InteractionResponseChannelMessageWithSource,
-				Data: &discordgo.InteractionResponseData{
-					Flags:  1 << 6,
-					Embeds: []*discordgo.MessageEmbed{embed},
-				},
-			}
+			response.Data.Embeds = []*discordgo.MessageEmbed{embed}
 
-			err := s.InteractionRespond(i.Interaction, response)
+			err := s.InteractionRespond(i.Interaction, &response)
 
 			if err != nil {
 				panic(err)
