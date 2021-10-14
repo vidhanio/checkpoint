@@ -651,7 +651,7 @@ func main() {
 
 	s.AddHandler(
 		func(s *discordgo.Session, c *discordgo.Connect) {
-			err := s.UpdateListeningStatus(fmt.Sprintf("/verify | Built on %s (%s) with %s/%s", BuildVersion, BuildTime, GOOS, GOARCH))
+			err := s.UpdateListeningStatus("/verify")
 			if err != nil {
 				log.Println(err)
 			}
