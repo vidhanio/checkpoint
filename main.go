@@ -77,7 +77,7 @@ func writeToGuilds(guilds *Guilds) error {
 	return nil
 }
 
-func includes(s string, a *[]string) bool {
+func contains(s string, a *[]string) bool {
 	for _, i := range *a {
 		if i == s {
 			return true
@@ -341,7 +341,7 @@ var (
 
 			if len(guild.ID) != 0 {
 				for pi, pronoun := range guild.PronounRoles {
-					if includes(strconv.Itoa(pi), &selectedPronouns) {
+					if contains(strconv.Itoa(pi), &selectedPronouns) {
 						_ = s.GuildMemberRoleAdd(i.GuildID, i.Member.User.ID, pronoun)
 						embed.Fields = append(
 							embed.Fields, &discordgo.MessageEmbedField{
@@ -391,10 +391,16 @@ var (
 			studentVerification := verifyStudent(student, students)
 
 			if studentVerification {
+				studentRoles := i.Member.Roles
+				for _, r := range guild.GradeRoles {
+					if contains(r, &studentRoles) {
+						s.GuildMemberRoleRemove(guild.ID, i.Member.User.ID, r)
+					}
+				}
 				if len(guild.ID) != 0 {
-					_ = s.GuildMemberRoleAdd(guild.ID, i.Member.User.ID, guild.VerifiedRole)
-					_ = s.GuildMemberRoleAdd(guild.ID, i.Member.User.ID, guild.GradeRoles[student.Grade-7])
-					_ = s.GuildMemberNickname(guild.ID, i.Member.User.ID, firstName+" "+string(lastName[0])+".")
+					s.GuildMemberRoleAdd(guild.ID, i.Member.User.ID, guild.VerifiedRole)
+					s.GuildMemberRoleAdd(guild.ID, i.Member.User.ID, guild.GradeRoles[student.Grade-7])
+					s.GuildMemberNickname(guild.ID, i.Member.User.ID, firstName+" "+string(lastName[0])+".")
 
 					teacherFields := strings.Fields(teacherName)
 
@@ -460,7 +466,7 @@ var (
 							Default: false,
 						}
 
-						if includes(p, &memberRoles) {
+						if contains(p, &memberRoles) {
 							pronounOption.Default = true
 						}
 						pronounOptions = append(pronounOptions, pronounOption)
