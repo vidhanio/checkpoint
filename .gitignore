@@ -227,5 +227,6 @@ pip-selfcheck.json
 
 test/
 main
+checkpoint
 students.json
 guilds.json

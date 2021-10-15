@@ -392,10 +392,6 @@ var (
 
 			if studentVerification {
 				if len(guild.ID) != 0 {
-					for _, gradeRole := range guild.GradeRoles {
-						_ = s.GuildMemberRoleRemove(guild.ID, i.Member.User.ID, gradeRole)
-					}
-
 					_ = s.GuildMemberRoleAdd(guild.ID, i.Member.User.ID, guild.VerifiedRole)
 					_ = s.GuildMemberRoleAdd(guild.ID, i.Member.User.ID, guild.GradeRoles[student.Grade-7])
 					_ = s.GuildMemberNickname(guild.ID, i.Member.User.ID, firstName+" "+string(lastName[0])+".")

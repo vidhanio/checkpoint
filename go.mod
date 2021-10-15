@@ -1,4 +1,4 @@
-module github.com/vidhanio/woodlands-checkpoint
+module github.com/vidhanio/checkpoint
 
 go 1.17
 
