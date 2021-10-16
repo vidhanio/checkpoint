@@ -41,6 +41,14 @@
 
 \*DM me on Discord ([`vidhan#0001`](https://discord.com/users/277507281652940800)) if you are interested in doing this step yourself.
 
+## Commands
+
+### `/verify`
+
+### `/set`
+
+### `/config`
+
 ## Docker
 
 This repository has been dockerized to allow for running the bot in a Docker container which is portable across different hosts and compatible with kubernetes clusters with a containerd runtime.
