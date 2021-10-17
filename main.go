@@ -391,15 +391,16 @@ var (
 			studentVerification := verifyStudent(student, students)
 
 			if studentVerification {
-				studentRoles := i.Member.Roles
-				for _, r := range guild.GradeRoles {
-					if contains(r, &studentRoles) {
-						s.GuildMemberRoleRemove(guild.ID, i.Member.User.ID, r)
-					}
-				}
 				if len(guild.ID) != 0 {
+					studentRoles := i.Member.Roles
+					for _, r := range guild.GradeRoles {
+						if contains(r, &studentRoles) {
+							s.GuildMemberRoleRemove(guild.ID, i.Member.User.ID, r)
+						}
+					}
+
 					s.GuildMemberRoleAdd(guild.ID, i.Member.User.ID, guild.VerifiedRole)
-					s.GuildMemberRoleAdd(guild.ID, i.Member.User.ID, guild.GradeRoles[student.Grade-7])
+					s.GuildMemberRoleAdd(guild.ID, i.Member.User.ID, guild.GradeRoles[student.Grade-1])
 					s.GuildMemberNickname(guild.ID, i.Member.User.ID, firstName+" "+string(lastName[0])+".")
 
 					teacherFields := strings.Fields(teacherName)
