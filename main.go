@@ -228,6 +228,17 @@ var (
 			},
 		},
 		{
+			Name:        "info",
+			Description: "Get information about a user.",
+			Options: []*discordgo.ApplicationCommandOption{
+				{
+					Type:        discordgo.ApplicationCommandOptionUser,
+					Name:        "user",
+					Description: "Get info about a user.",
+				},
+			},
+		},
+		{
 			Name:        "config",
 			Description: "Configure Checkpoint.",
 			Options: []*discordgo.ApplicationCommandOption{
