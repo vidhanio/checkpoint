@@ -235,6 +235,7 @@ var (
 					Type:        discordgo.ApplicationCommandOptionUser,
 					Name:        "user",
 					Description: "Get info about a user.",
+					Required:    true,
 				},
 			},
 		},
@@ -828,8 +829,10 @@ func main() {
 		log.Fatalf("Could not unmarshal guilds.json")
 	}
 
+	guildID := loadEnvVariable("GUILD_ID")
+
 	for _, c := range commands {
-		_, err := s.ApplicationCommandCreate(s.State.User.ID, "", c)
+		_, err := s.ApplicationCommandCreate(s.State.User.ID, guildID, c)
 		if err != nil {
 			log.Panicf("Cannot create '%v' command: %v", c.Name, err)
 		}
