@@ -588,6 +588,60 @@ var (
 			}
 		},
 
+		"info": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+			user := i.ApplicationCommandData().Options[0].UserValue(s)
+
+			guild, _ := getGuildByID(i.GuildID)
+			response := discordgo.InteractionResponse{
+				Type: discordgo.InteractionResponseChannelMessageWithSource,
+				Data: &discordgo.InteractionResponseData{
+					Flags: 1 << 6,
+				},
+			}
+			embed := initEmbed("Information not obtained")
+
+			member, err := s.GuildMember(guild.ID, user.ID)
+
+			if err != nil {
+				embed.Description = "Error while getting member."
+			} else {
+				studentRoles := member.Roles
+
+				for ri, r := range guild.GradeRoles {
+					if contains(r, &studentRoles) {
+						embed.Fields = append(embed.Fields,
+							&discordgo.MessageEmbedField{
+								Name:  "Grade",
+								Value: strconv.Itoa(ri),
+							},
+						)
+					}
+				}
+
+				for _, p := range guild.PronounRoles {
+					if contains(p, &studentRoles) {
+						embed.Fields = append(embed.Fields,
+							&discordgo.MessageEmbedField{
+								Name:  "Pronoun",
+								Value: fmt.Sprintf("<@&%s>", p),
+							},
+						)
+					}
+				}
+
+				embed.Title = fmt.Sprintf("Information for %s", user.Username)
+				embed.Color = successColor
+			}
+
+			response.Data.Embeds = []*discordgo.MessageEmbed{&embed}
+
+			err = s.InteractionRespond(i.Interaction, &response)
+
+			if err != nil {
+				log.Println(err)
+			}
+		},
+
 		"config": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			guild, guildIndex := getGuildByID(i.GuildID)
 			response := discordgo.InteractionResponse{
