@@ -612,7 +612,7 @@ var (
 						embed.Fields = append(embed.Fields,
 							&discordgo.MessageEmbedField{
 								Name:  "Grade",
-								Value: strconv.Itoa(ri),
+								Value: strconv.Itoa(ri + 1),
 							},
 						)
 					}
