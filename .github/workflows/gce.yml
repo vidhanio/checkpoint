@@ -1,7 +1,7 @@
 name: Build and Deploy the Container to Google Compute Engine
 env:
   PROJECT_ID: ${{ secrets.GCP_PROJECT }}
-  INSTANCE: ${{ secrets.GCP_INSTANCE }}
+  SERVICE: ${{ github.event.repository.name }}
   ZONE: us-east1-b
 
 on:
@@ -9,8 +9,8 @@ on:
     branches: [main]
 
 jobs:
-  setup-build-publish-deploy:
-    name: Setup, Build, Publish, and Deploy
+  build:
+    name: Build
     runs-on: ubuntu-latest
 
     steps:
@@ -28,13 +28,13 @@ jobs:
         run: gcloud auth configure-docker
 
       - name: Build the Docker image
-        run: docker build . -t gcr.io/${{ env.PROJECT_ID }}/${{ env.INSTANCE }}-image:${{ github.sha }}
+        run: docker build . -t gcr.io/${{ env.PROJECT_ID }}/${{ env.SERVICE }}:${{ github.sha }}
 
       - name: Publish the Docker image
-        run: docker push gcr.io/${{ env.PROJECT_ID }}/${{ env.INSTANCE }}-image:${{ github.sha }}
+        run: docker push gcr.io/${{ env.PROJECT_ID }}/${{ env.SERVICE }}:${{ github.sha }}
 
-      - name: Deploy to Google Compute Engine
+      - name: Redeploy to Google Compute Engine
         uses: joelwmale/webhook-action@2.1.0
         with:
-          url: http://${{ secrets.WEBHOOK_IP }}
+          url: https://${{ secrets.WEBHOOK_IP }}:9000/hooks/redeploy-checkpoint
           body: '{"secret": ${{ secrets.WEBHOOK_SECRET }} }'
