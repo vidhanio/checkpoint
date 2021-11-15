@@ -34,7 +34,7 @@ jobs:
         run: docker push gcr.io/${{ env.PROJECT_ID }}/${{ env.INSTANCE }}-image:${{ github.sha }}
 
       - name: Deploy to Google Compute Engine
-        run: |-
-          gcloud compute instances update-container ${{ env.INSTANCE }} \
-          --container-image gcr.io/${{ env.PROJECT_ID }}/${{ env.INSTANCE }}-image:${{ github.sha }} \
-          --zone ${{ env.ZONE }}
+        uses: joelwmale/webhook-action@2.1.0
+        with:
+          url: ${{ secrets.WEBHOOK_IP }}
+          body: '{"secret": ${{ secrets.WEBHOOK_SECRET }} }'
