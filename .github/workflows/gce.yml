@@ -43,4 +43,4 @@ jobs:
         uses: joelwmale/webhook-action@2.1.0
         with:
           url: http://${{ secrets.WEBHOOK_IP }}:9000/hooks/redeploy-checkpoint
-          body: '{"secret": "${{ secrets.WEBHOOK_SECRET }} }"''
+          body: '{"secret": "${{ secrets.WEBHOOK_SECRET }} }"'
