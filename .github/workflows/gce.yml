@@ -39,8 +39,8 @@ jobs:
     needs: build
 
     steps:
-      - name: Redeploy to Google Compute Engine
+      - name: Deploy to Google Compute Engine through a webhook
         uses: joelwmale/webhook-action@2.1.0
         with:
-          url: http://${{ secrets.WEBHOOK_IP }}:9000/hooks/redeploy-${{ env.SERVICE }}
+          url: http://${{ secrets.WEBHOOK_IP }}:9000/hooks/deploy-${{ env.SERVICE }}
           body: '{ "secret": "${{ secrets.WEBHOOK_SECRET }}" }'
