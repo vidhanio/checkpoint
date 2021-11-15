@@ -8,6 +8,7 @@ name: Build and Deploy a Container to Google Compute Engine
 env:
   PROJECT_ID: ${{ secrets.GCP_PROJECT }}
   INSTANCE: ${{ secrets.GCP_INSTANCE }}
+  ZONE: us-east1-b
 
 jobs:
   setup-build-publish-deploy:
@@ -36,5 +37,6 @@ jobs:
 
       - name: Deploy to Google Compute Engine
         run: |-
-          gcloud compute instances update-container ${{ env.INSTANCE }}
-            --container-image gcr.io/${{ env.PROJECT_ID }}/${{ env.INSTANCE }}-image:${{ github.sha }}
+          gcloud compute instances update-container ${{ env.INSTANCE }} \
+            --container-image gcr.io/${{ env.PROJECT_ID }}/${{ env.INSTANCE }}-image:${{ github.sha }} \
+            --zone ${{ env.ZONE }}
