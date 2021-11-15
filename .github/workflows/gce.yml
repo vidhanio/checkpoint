@@ -42,5 +42,5 @@ jobs:
       - name: Redeploy to Google Compute Engine
         uses: joelwmale/webhook-action@2.1.0
         with:
-          url: http://${{ secrets.WEBHOOK_IP }}:9000/hooks/redeploy-checkpoint
-          body: '{"secret": "${{ secrets.WEBHOOK_SECRET }} }"'
+          url: http://${{ secrets.WEBHOOK_IP }}:9000/hooks/redeploy-${{ env.SERVICE }}
+          body: '{ "secret": "${{ secrets.WEBHOOK_SECRET }}" }'
