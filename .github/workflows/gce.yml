@@ -1,14 +1,12 @@
-on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
-
 name: Build and Deploy the Container to Google Compute Engine
 env:
   PROJECT_ID: ${{ secrets.GCP_PROJECT }}
   INSTANCE: ${{ secrets.GCP_INSTANCE }}
   ZONE: us-east1-b
+
+on:
+  push:
+    branches: [main]
 
 jobs:
   setup-build-publish-deploy:
