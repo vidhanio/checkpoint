@@ -836,6 +836,7 @@ func init() {
 		},
 	)
 }
+
 func main() {
 	s.AddHandler(
 		func(s *discordgo.Session, r *discordgo.Ready) {
