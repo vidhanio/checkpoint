@@ -36,26 +36,6 @@
 2. Remove the `.example` from each of the filenames
 3. Fill `students.json` with student information*
 4. Put your Discord bot token in the `.env`
-5. Run `go build main`
-6. Run `./main` (or `./main.exe` for Windows users)
+5. Run `go run ./cmd/bot`
 
 \*DM me on Discord ([`vidhan#0001`](https://discord.com/users/277507281652940800)) if you are interested in doing this step yourself.
-
-## Commands
-
-### `/verify`
-
-### `/set`
-
-### `/config`
-
-## Docker
-
-This repository has been dockerized to allow for running the bot in a Docker container which is portable across different hosts and compatible with kubernetes clusters with a containerd runtime.
-
-To build the Docker image: `make docker-build`
-To publish the Docker image to GHCR: `make publish`
-
-### Docker Compose
-
-There is a premade `docker-compose.yml` file for quick deployment to any Docker host. Simply run `docker-compose up` to run the compose file or visit Docker's documentation for more options of the command.
