@@ -7,7 +7,7 @@
 3. Create a channel for non-verified members to verify themselves in (e.g. `#verification`)
 4. Set up permissons for the role so that only the verified members can see the normal channels
 5. Set up the verification channel so only non-verified members can see it (verified members cannot see it)
-6. Use `/config set verified_role` with the roles you made earlier (e.g. `/config set verified_role role:@Verified`)
+6. Use `/config set verified` with the roles you made earlier (e.g. `/config set verified role:@Verified`)
 7. Woodlands Checkpoint should be set up! 😄
 
 ### Fixes to Try
