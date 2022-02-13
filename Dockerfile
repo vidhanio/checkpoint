@@ -8,4 +8,4 @@ RUN go mod download
 
 RUN go build -o /app/bin/bot ./cmd/bot
 
-CMD ["/app/bin/bot" "-dotenv", "/app/.env" "-students", "/app/student.json", "-guilds", "/app/guild.json"]
+CMD [ "/app/bin/bot", "-dotenv", "/app/.env", "-students", "/app/students.json", "-guilds", "/app/guilds.json" ]
