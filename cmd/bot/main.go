@@ -7,26 +7,26 @@ import (
 	"syscall"
 
 	"github.com/joho/godotenv"
+	"github.com/rs/zerolog/log"
 	"github.com/vidhanio/checkpoint"
 )
 
 func main() {
-	dotenv := flag.String("dotenv", ".env", "path to .env file")
 	studentsFilename := flag.String("students", "students.json", "Path to students.json")
 	guildsPathFilename := flag.String("guilds", "guilds.json", "Path to guilds.json")
 
 	flag.Parse()
 
-	err := godotenv.Load(*dotenv)
+	err := godotenv.Load()
 	if err != nil {
-		panic(err)
+		log.Fatal().Err(err).Msg("Error loading .env file")
 	}
 
 	c := checkpoint.New(os.Getenv("DISCORD_TOKEN"), os.Getenv("DISCORD_GUILD_ID"), *studentsFilename, *guildsPathFilename)
 
 	err = c.Start()
 	if err != nil {
-		panic(err)
+		log.Fatal().Err(err).Msg("Error starting bot")
 	}
 
 	sc := make(chan os.Signal, 1)
@@ -36,6 +36,6 @@ func main() {
 
 	err = c.Stop()
 	if err != nil {
-		panic(err)
+		log.Fatal().Err(err).Msg("Error stopping bot")
 	}
 }
