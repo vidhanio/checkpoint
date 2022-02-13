@@ -11,12 +11,13 @@ import (
 )
 
 func main() {
+	dotenv := flag.String("dotenv", ".env", "path to .env file")
 	studentsFilename := flag.String("students", "students.json", "Path to students.json")
 	guildsPathFilename := flag.String("guilds", "guilds.json", "Path to guilds.json")
 
 	flag.Parse()
 
-	err := godotenv.Load()
+	err := godotenv.Load(*dotenv)
 	if err != nil {
 		panic(err)
 	}
