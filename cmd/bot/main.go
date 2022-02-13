@@ -19,15 +19,17 @@ func main() {
 
 	err := godotenv.Load()
 	if err != nil {
-		log.Fatal().Err(err).Msg("Error loading .env file")
+		log.Fatal().Err(err).Msg("Error loading .env file.")
 	}
 
 	c := checkpoint.New(os.Getenv("DISCORD_TOKEN"), os.Getenv("DISCORD_GUILD_ID"), *studentsFilename, *guildsPathFilename)
 
 	err = c.Start()
 	if err != nil {
-		log.Fatal().Err(err).Msg("Error starting bot")
+		log.Fatal().Err(err).Msg("Error starting bot.")
 	}
+
+	log.Info().Msg("Bot started. Press Ctrl+C to exit.")
 
 	sc := make(chan os.Signal, 1)
 	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt, os.Kill)
@@ -36,6 +38,8 @@ func main() {
 
 	err = c.Stop()
 	if err != nil {
-		log.Fatal().Err(err).Msg("Error stopping bot")
+		log.Fatal().Err(err).Msg("Error stopping bot.")
 	}
+
+	log.Info().Msg("Bot stopped.")
 }
