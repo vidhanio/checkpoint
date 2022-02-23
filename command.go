@@ -11,6 +11,12 @@ var commands = []*discordgo.ApplicationCommand{
 		Options: []*discordgo.ApplicationCommandOption{
 			{
 				Type:        discordgo.ApplicationCommandOptionString,
+				Name:        "school",
+				Description: "Your school.",
+				Required:    true,
+			},
+			{
+				Type:        discordgo.ApplicationCommandOptionString,
 				Name:        "first_name",
 				Description: "Your first name.",
 				Required:    true,

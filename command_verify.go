@@ -20,13 +20,15 @@ func (c *Checkpoint) verify(s *discordgo.Session, i *discordgo.InteractionCreate
 		return
 	}
 
-	firstName := strings.Title(i.ApplicationCommandData().Options[0].StringValue())
-	lastName := strings.Title(i.ApplicationCommandData().Options[1].StringValue())
-	grade := int(i.ApplicationCommandData().Options[2].IntValue())
-	teacherName := strings.Title(i.ApplicationCommandData().Options[3].StringValue())
-	StudentNumber := int(i.ApplicationCommandData().Options[4].IntValue())
+	school := i.ApplicationCommandData().Options[0].StringValue()
+	firstName := strings.Title(i.ApplicationCommandData().Options[1].StringValue())
+	lastName := strings.Title(i.ApplicationCommandData().Options[2].StringValue())
+	grade := int(i.ApplicationCommandData().Options[3].IntValue())
+	teacherName := strings.Title(i.ApplicationCommandData().Options[4].StringValue())
+	StudentNumber := int(i.ApplicationCommandData().Options[5].IntValue())
 
 	student := student.Student{
+		School:         school,
 		Initials:       [2]rune{rune(firstName[0]), rune(lastName[0])},
 		Grade:          grade,
 		TeacherInitial: rune(teacherName[0]),

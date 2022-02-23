@@ -12,6 +12,7 @@ type Checkpoint struct {
 	guilds   *guild.GuildStore
 
 	guildID string
+	schools []string
 }
 
 func New(botToken string, guildID string, studentsFilename string, guildsPathFilename string) *Checkpoint {
@@ -27,6 +28,10 @@ func New(botToken string, guildID string, studentsFilename string, guildsPathFil
 		guildID:  guildID,
 	}
 
+	for k := range c.students {
+		c.schools = append(c.schools, k)
+	}
+
 	s.AddHandler(c.handler)
 
 	return c
@@ -36,6 +41,16 @@ func (c *Checkpoint) Start() error {
 	err := c.session.Open()
 	if err != nil {
 		return err
+	}
+
+	for _, s := range c.schools {
+		commands[0].Options[0].Choices = append(
+			commands[0].Options[0].Choices,
+			&discordgo.ApplicationCommandOptionChoice{
+				Name:  s,
+				Value: s,
+			},
+		)
 	}
 
 	_, err = c.session.ApplicationCommandBulkOverwrite(c.session.State.User.ID, c.guildID, commands)

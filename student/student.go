@@ -7,9 +7,10 @@ import (
 	"unicode"
 )
 
-type Students [26][26][]Student
+type Students map[string][26][26][]Student
 
 type Student struct {
+	School         string  `json:"school"`
 	Initials       [2]rune `json:"initials"`
 	Grade          int     `json:"grade"`
 	TeacherInitial rune    `json:"teacher_initial"`
@@ -31,7 +32,7 @@ func MakeStudents(filename string) Students {
 }
 
 func MakeStudentsFromBytes(b []byte) Students {
-	ss := [26][26][]Student{}
+	ss := map[string][26][26][]Student{}
 
 	err := json.Unmarshal(b, &ss)
 	if err != nil {
@@ -50,7 +51,12 @@ func (s Students) Verify(student Student) bool {
 		return false
 	}
 
-	for _, s := range s[student.Initials[0]-'A'][student.Initials[1]-'A'] {
+	_, ok := s[student.School]
+	if !ok {
+		return false
+	}
+
+	for _, s := range s[student.School][student.Initials[0]-'A'][student.Initials[1]-'A'] {
 		if s == student {
 			return true
 		}
