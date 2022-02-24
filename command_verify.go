@@ -43,6 +43,8 @@ func (c *Checkpoint) verify(s *discordgo.Session, i *discordgo.InteractionCreate
 		return
 	}
 
+	successRespond(s, i, "You have been verified!")
+
 	err = c.session.GuildMemberRoleAdd(i.GuildID, i.Member.User.ID, g.VerifiedRole)
 	if err != nil {
 		errorRespond(s, i, err)
@@ -50,5 +52,14 @@ func (c *Checkpoint) verify(s *discordgo.Session, i *discordgo.InteractionCreate
 		return
 	}
 
-	successRespond(s, i, "You have been verified!")
+	if g.GradeRoles[grade-1] == "" {
+		return
+	}
+
+	err = c.session.GuildMemberRoleAdd(i.GuildID, i.Member.User.ID, g.GradeRoles[grade-1])
+	if err != nil {
+		errorRespond(s, i, err)
+
+		return
+	}
 }
