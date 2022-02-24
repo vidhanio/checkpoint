@@ -193,6 +193,11 @@ func (c *Checkpoint) handler(s *discordgo.Session, i *discordgo.InteractionCreat
 				c.listPronouns(s, i)
 			}
 		case "config":
+			if !isManageRoles(s, i) {
+				warningRespond(s, i, "You do not have permission to configure Checkpoint.")
+
+				return
+			}
 			switch i.ApplicationCommandData().Options[0].Name {
 			case "set":
 				switch i.ApplicationCommandData().Options[0].Options[0].Name {

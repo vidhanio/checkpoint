@@ -24,6 +24,16 @@ func contains[T comparable](ts []T, t T) bool {
 	return false
 }
 
+func isManageRoles(s *discordgo.Session, i *discordgo.InteractionCreate) bool {
+	perms, err := s.UserChannelPermissions(i.Member.User.ID, i.ChannelID)
+	if err != nil {
+		log.Error().Err(err).Msg("failed to get user permissions")
+		return false
+	}
+
+	return perms&discordgo.PermissionManageRoles != 0
+}
+
 func ephemeralify(r *discordgo.InteractionResponse) *discordgo.InteractionResponse {
 	r.Data.Flags |= ephemeralFlag
 	return r
