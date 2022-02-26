@@ -1,6 +1,7 @@
 package checkpoint
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/bwmarrin/discordgo"
@@ -44,6 +45,13 @@ func (c *Checkpoint) verify(s *discordgo.Session, i *discordgo.InteractionCreate
 	successRespond(s, i, "You have been verified!")
 
 	err = c.session.GuildMemberRoleAdd(i.GuildID, i.Member.User.ID, g.VerifiedRole)
+	if err != nil {
+		errorRespond(s, i, err)
+
+		return
+	}
+
+	err = c.session.GuildMemberNickname(i.GuildID, i.Member.User.ID, fmt.Sprintf("%s %b.", firstName, lastName[0]))
 	if err != nil {
 		errorRespond(s, i, err)
 
