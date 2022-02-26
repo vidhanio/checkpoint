@@ -134,5 +134,9 @@ func warningRespond(s *discordgo.Session, i *discordgo.InteractionCreate, m stri
 }
 
 func errorRespond(s *discordgo.Session, i *discordgo.InteractionCreate, err error) {
+	log.Error().
+		Err(err).
+		Msg("Error occured")
+
 	respond(s, i, ephemeralify(embedResponse(errorEmbed(err))))
 }

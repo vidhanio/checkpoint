@@ -105,8 +105,58 @@ var commands = []*discordgo.ApplicationCommand{
 							{
 								Type:        discordgo.ApplicationCommandOptionInteger,
 								Name:        "grade",
-								Description: "Grade. [1 - 12]",
+								Description: "Grade.",
 								Required:    true,
+								Choices: []*discordgo.ApplicationCommandOptionChoice{
+									{
+										Name:  "1",
+										Value: 1,
+									},
+									{
+										Name:  "2",
+										Value: 2,
+									},
+									{
+										Name:  "3",
+										Value: 3,
+									},
+									{
+										Name:  "4",
+										Value: 4,
+									},
+									{
+										Name:  "5",
+										Value: 5,
+									},
+									{
+										Name:  "6",
+										Value: 6,
+									},
+									{
+										Name:  "7",
+										Value: 7,
+									},
+									{
+										Name:  "8",
+										Value: 8,
+									},
+									{
+										Name:  "9",
+										Value: 9,
+									},
+									{
+										Name:  "10",
+										Value: 10,
+									},
+									{
+										Name:  "11",
+										Value: 11,
+									},
+									{
+										Name:  "12",
+										Value: 12,
+									},
+								},
 							},
 							{
 								Type:        discordgo.ApplicationCommandOptionRole,
@@ -144,8 +194,58 @@ var commands = []*discordgo.ApplicationCommand{
 							{
 								Type:        discordgo.ApplicationCommandOptionInteger,
 								Name:        "grade",
-								Description: "Grade. [1 - 12]",
+								Description: "Grade.",
 								Required:    true,
+								Choices: []*discordgo.ApplicationCommandOptionChoice{
+									{
+										Name:  "1",
+										Value: 1,
+									},
+									{
+										Name:  "2",
+										Value: 2,
+									},
+									{
+										Name:  "3",
+										Value: 3,
+									},
+									{
+										Name:  "4",
+										Value: 4,
+									},
+									{
+										Name:  "5",
+										Value: 5,
+									},
+									{
+										Name:  "6",
+										Value: 6,
+									},
+									{
+										Name:  "7",
+										Value: 7,
+									},
+									{
+										Name:  "8",
+										Value: 8,
+									},
+									{
+										Name:  "9",
+										Value: 9,
+									},
+									{
+										Name:  "10",
+										Value: 10,
+									},
+									{
+										Name:  "11",
+										Value: 11,
+									},
+									{
+										Name:  "12",
+										Value: 12,
+									},
+								},
 							},
 						},
 					},
