@@ -49,7 +49,7 @@ func (c *Checkpoint) verify(s *discordgo.Session, i *discordgo.InteractionCreate
 
 	successRespond(s, i, "You have been verified!")
 
-	err = c.session.GuildMemberNickname(i.GuildID, i.Member.User.ID, fmt.Sprintf("%s %b.", firstName, lastName[0]))
+	err = c.session.GuildMemberNickname(i.GuildID, i.Member.User.ID, fmt.Sprintf("%s %c.", firstName, lastName[0]))
 	if err != nil {
 		errorRespond(s, i, err)
 	}
