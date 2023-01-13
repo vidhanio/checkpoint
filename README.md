@@ -38,4 +38,4 @@
 4. Put your Discord bot token in the `.env`
 5. Run `go run ./cmd/bot`
 
-\*DM me on Discord ([`vidhan#0001`](https://discord.com/users/277507281652940800)) if you are interested in doing this step yourself.
+\*DM me on Discord ([`vidhan#7555`](https://discord.com/users/1063329635569512520)) if you are interested in doing this step yourself.
